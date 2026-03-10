@@ -29,6 +29,12 @@ export interface Workflow {
   inserted_at: string
 }
 
+export interface Credential {
+  id: string
+  name: string
+  type: string
+}
+
 export interface Draft {
   id: string
   data: Record<string, unknown>

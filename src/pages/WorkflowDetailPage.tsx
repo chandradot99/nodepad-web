@@ -4,8 +4,9 @@ import AppLayout from '../components/layout/AppLayout'
 import WorkflowCanvas from '../components/workflow/WorkflowCanvas'
 import ChatPanel from '../components/chat/ChatPanel'
 import { workflowsApi } from '../api/workflows'
+import { connectionsApi } from '../api/connections'
 import { n8nToFlow } from '../utils/n8nToFlow'
-import type { Workflow } from '../types'
+import type { Workflow, Credential } from '../types'
 import type { Node, Edge } from 'reactflow'
 
 export default function WorkflowDetailPage() {
@@ -14,6 +15,7 @@ export default function WorkflowDetailPage() {
   const [workflow, setWorkflow] = useState<Workflow | null>(null)
   const [nodes, setNodes] = useState<Node[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
+  const [credentials, setCredentials] = useState<Credential[]>([])
   const [fetching, setFetching] = useState(true)
 
   useEffect(() => {
@@ -24,7 +26,10 @@ export default function WorkflowDetailPage() {
         const { nodes: n, edges: e } = n8nToFlow(wf.data)
         setNodes(n)
         setEdges(e)
+        // Fetch credentials for this connection (best-effort)
+        return connectionsApi.credentials(wf.connection_id).catch(() => [])
       })
+      .then(creds => setCredentials(creds))
       .catch(() => navigate(-1))
       .finally(() => setFetching(false))
   }, [id])
@@ -54,7 +59,7 @@ export default function WorkflowDetailPage() {
           <WorkflowCanvas initialNodes={nodes} initialEdges={edges} />
         </div>
         <div className="w-[360px] shrink-0">
-          {id && <ChatPanel workflowId={id} />}
+          {id && <ChatPanel workflowId={id} credentials={credentials} />}
         </div>
       </div>
     </AppLayout>

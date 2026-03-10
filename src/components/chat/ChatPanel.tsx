@@ -1,17 +1,45 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import client from '../../api/client'
-import type { Message } from '../../types'
+import type { Message, Credential } from '../../types'
+
+// Friendly display names for common n8n credential types
+const CREDENTIAL_LABELS: Record<string, string> = {
+  googleSheetsOAuth2Api: 'Google Sheets',
+  gmailOAuth2: 'Gmail',
+  googleDriveOAuth2Api: 'Google Drive',
+  googleCalendarOAuth2Api: 'Google Calendar',
+  slackApi: 'Slack',
+  slackOAuth2Api: 'Slack',
+  telegramApi: 'Telegram',
+  discordApi: 'Discord',
+  githubApi: 'GitHub',
+  githubOAuth2Api: 'GitHub',
+  notionApi: 'Notion',
+  airtableApi: 'Airtable',
+  postgresDb: 'PostgreSQL',
+  mysqlDb: 'MySQL',
+  mongoDb: 'MongoDB',
+  redisDb: 'Redis',
+  httpBasicAuth: 'HTTP Basic',
+  httpHeaderAuth: 'HTTP Header',
+}
+
+function credentialLabel(type: string) {
+  return CREDENTIAL_LABELS[type] ?? type.replace(/([A-Z])/g, ' $1').trim()
+}
 
 interface Props {
   workflowId: string
+  credentials: Credential[]
 }
 
-export default function ChatPanel({ workflowId }: Props) {
+export default function ChatPanel({ workflowId, credentials }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [input, setInput] = useState('')
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('claude_api_key') || '')
   const [showKeyInput, setShowKeyInput] = useState(!localStorage.getItem('claude_api_key'))
+  const [showCredentials, setShowCredentials] = useState(false)
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -111,6 +139,36 @@ export default function ChatPanel({ workflowId }: Props) {
               Save
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Credentials */}
+      {credentials.length > 0 && (
+        <div className="border-b border-gray-800 shrink-0">
+          <button
+            onClick={() => setShowCredentials(v => !v)}
+            className="w-full flex items-center justify-between px-4 py-2.5 text-xs text-gray-400 hover:text-white hover:bg-gray-900 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span>🔐</span>
+              <span className="font-medium">Available Credentials</span>
+              <span className="bg-gray-800 text-gray-400 rounded-full px-1.5 py-0.5 text-xs">{credentials.length}</span>
+            </div>
+            <span>{showCredentials ? '▲' : '▼'}</span>
+          </button>
+          {showCredentials && (
+            <div className="px-4 pb-3 space-y-1.5">
+              {credentials.map(cred => (
+                <div key={cred.id} className="flex items-center gap-2 bg-gray-900 rounded-lg px-3 py-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-medium text-white truncate">{cred.name}</div>
+                    <div className="text-xs text-gray-500 truncate">{credentialLabel(cred.type)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
