@@ -1,7 +1,7 @@
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuthStore } from '../../store/auth'
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children, noPadding }: { children: React.ReactNode; noPadding?: boolean }) {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
@@ -32,7 +32,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </button>
         </div>
       </header>
-      <main className="flex-1 p-6">{children}</main>
+      <main className={`flex-1 ${noPadding ? '' : 'p-6'}`}>{children}</main>
     </div>
   )
 }
