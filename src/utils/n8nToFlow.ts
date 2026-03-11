@@ -7,7 +7,15 @@ export function n8nToFlow(data: Record<string, unknown>) {
   const nodes: Node[] = rawNodes.map((n: any) => ({
     id: n.id,
     position: { x: n.position[0], y: n.position[1] },
-    data: { label: n.name, nodeType: n.type },
+    data: {
+      label:       n.name,
+      nodeType:    n.type,
+      parameters:  n.parameters  ?? {},
+      credentials: n.credentials ?? {},
+      disabled:    n.disabled    ?? false,
+      notes:       n.notes,
+      typeVersion: n.typeVersion,
+    },
     type: 'n8nNode',
   }))
 

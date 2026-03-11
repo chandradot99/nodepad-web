@@ -1,12 +1,12 @@
 import { Handle, Position } from 'reactflow'
 
-// ─── Category config ──────────────────────────────────────────────────────────
+// ─── Category config ───────────────────────────────────────────────────────────
 
 type Category = {
-  accent: string     // left border color
-  icon: string       // emoji icon
-  label: string      // category label shown in small text
-  iconBg: string     // icon background
+  accent: string
+  icon: string
+  label: string
+  iconBg: string
 }
 
 const CATEGORIES: Record<string, Category> = {
@@ -19,7 +19,7 @@ const CATEGORIES: Record<string, Category> = {
   default:   { accent: 'bg-gray-500',    icon: '◆',  label: 'Node',      iconBg: 'bg-gray-500/20'   },
 }
 
-function getCategory(nodeType: string): Category {
+export function getCategory(nodeType: string): Category {
   const t = nodeType.toLowerCase()
   if (t.includes('trigger') || t.includes('webhook') || t.includes('cron') || t.includes('start') || t.includes('manual')) return CATEGORIES.trigger
   if (t.includes('.if') || t.includes('switch') || t.includes('merge') || t.includes('filter') || t.includes('splitin')) return CATEGORIES.logic
@@ -30,19 +30,28 @@ function getCategory(nodeType: string): Category {
   return CATEGORIES.default
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── Component ─────────────────────────────────────────────────────────────────
 
-interface N8nNodeData {
-  label: string
-  nodeType: string
+export interface N8nNodeData {
+  label:       string
+  nodeType:    string
+  parameters:  Record<string, any>
+  credentials: Record<string, any>
+  disabled:    boolean
+  notes?:      string
+  typeVersion?: number
 }
 
-export default function N8nNode({ data }: { data: N8nNodeData }) {
+export default function N8nNode({ data, selected }: { data: N8nNodeData; selected?: boolean }) {
   const cat = getCategory(data.nodeType)
   const shortType = data.nodeType?.split('.').pop()?.replace(/([A-Z])/g, ' $1').trim() ?? 'Node'
 
   return (
-    <div className="relative bg-gray-900 border border-gray-700 rounded-lg min-w-[170px] max-w-[220px] shadow-xl overflow-hidden group hover:border-gray-500 transition-colors">
+    <div className={`relative bg-gray-800 border rounded-lg min-w-[170px] max-w-[220px] shadow-2xl overflow-hidden transition-all ${
+      selected
+        ? 'border-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.25)]'
+        : 'border-gray-600 hover:border-gray-400'
+    } ${data.disabled ? 'opacity-40' : ''}`}>
       {/* Left accent bar */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${cat.accent}`} />
 
@@ -61,12 +70,12 @@ export default function N8nNode({ data }: { data: N8nNodeData }) {
       <Handle
         type="target"
         position={Position.Left}
-        className="!w-3 !h-3 !bg-gray-600 !border-2 !border-gray-400 group-hover:!border-gray-300 !-left-1.5"
+        className="!w-3 !h-3 !bg-gray-700 !border-2 !border-gray-500 hover:!border-gray-300 !-left-1.5"
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="!w-3 !h-3 !bg-gray-600 !border-2 !border-gray-400 group-hover:!border-gray-300 !-right-1.5"
+        className="!w-3 !h-3 !bg-gray-700 !border-2 !border-gray-500 hover:!border-gray-300 !-right-1.5"
       />
     </div>
   )

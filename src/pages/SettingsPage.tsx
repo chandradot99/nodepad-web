@@ -6,9 +6,10 @@ import { useTheme } from '../context/ThemeContext'
 import { useWorkspaceStore } from '../store/workspace'
 import { workspacesApi } from '../api/workspaces'
 import { connectionsApi } from '../api/connections'
+import { extensionApi } from '../api/extension'
 import type { Connection } from '../types'
 
-type Tab = 'account' | 'workspace'
+type Tab = 'account' | 'workspace' | 'extension'
 
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
@@ -373,11 +374,161 @@ function WorkspaceTab() {
   )
 }
 
+// ── Extension tab ─────────────────────────────────────────────────────────────
+
+function ExtensionTab() {
+  const [hasToken, setHasToken] = useState(false)
+  const [hint, setHint] = useState<string | null>(null)
+  const [newToken, setNewToken] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [revoking, setRevoking] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    extensionApi.status()
+      .then(({ has_token, hint }) => { setHasToken(has_token); setHint(hint) })
+      .catch(() => setError('Failed to load token status.'))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const generate = async () => {
+    setGenerating(true)
+    setError('')
+    setNewToken(null)
+    try {
+      const { token } = await extensionApi.generate()
+      // Embed the API URL into the token so the extension only needs one field
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api'
+      const compound = btoa(JSON.stringify({ api: apiUrl, token }))
+      setNewToken(compound)
+      setHasToken(true)
+      setHint(`···${token.slice(-6)}`)
+    } catch {
+      setError('Failed to generate token.')
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const revoke = async () => {
+    if (!window.confirm('Revoke this token? The extension will stop working until you generate a new one.')) return
+    setRevoking(true)
+    setError('')
+    try {
+      await extensionApi.revoke()
+      setHasToken(false)
+      setHint(null)
+      setNewToken(null)
+    } catch {
+      setError('Failed to revoke token.')
+    } finally {
+      setRevoking(false)
+    }
+  }
+
+  const copy = () => {
+    if (!newToken) return
+    navigator.clipboard.writeText(newToken)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (loading) return <p className="text-text-muted text-sm">Loading...</p>
+
+  return (
+    <div className="space-y-6">
+      <Section title="Chrome Extension">
+        <div className="space-y-4">
+          <p className="text-xs text-text-muted leading-relaxed">
+            The NodePad Chrome extension syncs your n8n node schemas so the AI can generate accurate workflows.
+            Install the extension, then paste this token in the extension's side panel.
+          </p>
+
+          {/* Token status */}
+          {hasToken && !newToken && (
+            <div className="flex items-center justify-between bg-bg border border-border rounded-md px-3 py-2.5">
+              <div>
+                <p className="text-xs font-medium text-text">Active token</p>
+                <p className="text-[11px] font-mono text-text-muted mt-0.5">{hint}</p>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">Active</span>
+            </div>
+          )}
+
+          {/* Newly generated token — show once */}
+          {newToken && (
+            <div className="bg-accent/5 border border-accent/20 rounded-md p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <span className="text-amber-400 text-sm shrink-0">⚠</span>
+                <p className="text-xs text-text-muted">Copy this token now — it won't be shown again.</p>
+              </div>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-bg border border-border rounded px-3 py-2 text-xs font-mono text-text break-all">
+                  {newToken}
+                </code>
+                <button
+                  onClick={copy}
+                  className="px-3 py-2 text-xs border border-border bg-surface-raised text-text rounded-md hover:border-border-strong transition-colors shrink-0"
+                >
+                  {copied ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {error && <p className="text-xs text-red-400">{error}</p>}
+
+          <div className="flex gap-2">
+            <button
+              onClick={generate}
+              disabled={generating}
+              className="px-4 py-2 text-sm bg-accent text-white rounded-md hover:bg-accent-hover transition-colors disabled:opacity-50"
+            >
+              {generating ? 'Generating…' : hasToken ? 'Regenerate Token' : 'Generate Token'}
+            </button>
+            {hasToken && (
+              <button
+                onClick={revoke}
+                disabled={revoking}
+                className="px-4 py-2 text-sm bg-red-500/10 text-red-400 border border-red-500/20 rounded-md hover:bg-red-500/20 transition-colors disabled:opacity-50"
+              >
+                {revoking ? 'Revoking…' : 'Revoke'}
+              </button>
+            )}
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Setup Instructions">
+        <ol className="space-y-3 text-xs text-text-muted list-none">
+          {[
+            'Build the extension from nodepad-extension/ and load it in Chrome (chrome://extensions → Load unpacked → dist/)',
+            'Click the NodePad icon in your browser toolbar to open the side panel',
+            'Enter your NodePad URL and the token generated above',
+            'Navigate to your n8n instance (must be logged in)',
+            'Click "Sync Nodes Now" — repeat after installing new community nodes',
+          ].map((step, i) => (
+            <li key={i} className="flex gap-3">
+              <span className="w-5 h-5 rounded-full bg-accent/10 text-accent text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
+                {i + 1}
+              </span>
+              <span className="leading-relaxed">{step}</span>
+            </li>
+          ))}
+        </ol>
+      </Section>
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'account',   label: 'Account'   },
   { id: 'workspace', label: 'Workspace' },
+  { id: 'extension', label: 'Extension' },
 ]
 
 export default function SettingsPage() {
@@ -411,7 +562,9 @@ export default function SettingsPage() {
       {/* Scrollable content */}
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-lg">
-          {tab === 'account' ? <AccountTab /> : <WorkspaceTab />}
+          {tab === 'account' && <AccountTab />}
+          {tab === 'workspace' && <WorkspaceTab />}
+          {tab === 'extension' && <ExtensionTab />}
         </div>
       </div>
     </AppLayout>

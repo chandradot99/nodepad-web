@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import AppLayout from '../components/layout/AppLayout'
 import WorkflowCanvas from '../components/workflow/WorkflowCanvas'
 import ChatPanel from '../components/chat/ChatPanel'
+import NodeDetailPanel from '../components/workflow/NodeDetailPanel'
+import type { N8nNodeData } from '../components/workflow/N8nNode'
 import { workflowsApi } from '../api/workflows'
 import { connectionsApi } from '../api/connections'
 import { n8nToFlow } from '../utils/n8nToFlow'
@@ -17,6 +19,7 @@ export default function WorkflowDetailPage() {
   const [edges, setEdges] = useState<Edge[]>([])
   const [credentials, setCredentials] = useState<Credential[]>([])
   const [fetching, setFetching] = useState(true)
+  const [selectedNode, setSelectedNode] = useState<N8nNodeData | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -68,11 +71,18 @@ export default function WorkflowDetailPage() {
         </span>
       </div>
 
-      {/* Canvas + Chat — fills remaining height */}
+      {/* Canvas + Node Panel + Chat — fills remaining height */}
       <div className="flex flex-1 min-h-0">
         <div className="flex-1 min-w-0 [color-scheme:dark]">
-          <WorkflowCanvas initialNodes={nodes} initialEdges={edges} />
+          <WorkflowCanvas
+            initialNodes={nodes}
+            initialEdges={edges}
+            onNodeSelect={setSelectedNode}
+          />
         </div>
+        {selectedNode && (
+          <NodeDetailPanel node={selectedNode} onClose={() => setSelectedNode(null)} />
+        )}
         <div className="w-[360px] shrink-0">
           {id && <ChatPanel workflowId={id} credentials={credentials} />}
         </div>
