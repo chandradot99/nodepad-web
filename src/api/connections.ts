@@ -8,6 +8,9 @@ export const connectionsApi = {
   create: (workspaceId: string, data: { name: string; base_url: string; api_key: string }) =>
     client.post<Connection>(`/workspaces/${workspaceId}/connections`, data).then(r => r.data),
 
+  update: (id: string, data: { base_url?: string; api_key?: string }) =>
+    client.patch<Connection>(`/connections/${id}`, data).then(r => r.data),
+
   test: (id: string) =>
     client.get<{ success: boolean; message?: string; error?: string }>(`/connections/${id}/test`).then(r => r.data),
 

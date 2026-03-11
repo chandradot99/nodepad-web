@@ -4,11 +4,11 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export default function Button({ variant = 'primary', loading, children, className = '', ...props }: ButtonProps) {
-  const base = 'px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 cursor-pointer'
+  const base = 'px-4 py-2 font-medium text-sm transition-colors disabled:opacity-50 cursor-pointer rounded-md'
   const variants = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white',
-    secondary: 'bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700',
-    danger: 'bg-red-600 hover:bg-red-700 text-white',
+    primary:   'bg-accent text-white hover:bg-accent-hover active:opacity-90',
+    secondary: 'bg-surface-raised text-text border border-border hover:border-border-strong',
+    danger:    'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20',
   }
 
   return (

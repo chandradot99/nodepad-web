@@ -2,10 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from './store/auth'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
-import DashboardPage from './pages/DashboardPage'
-import WorkspacePage from './pages/WorkspacePage'
-import WorkflowsPage from './pages/WorkflowsPage'
+import WorkflowsListPage from './pages/WorkflowsListPage'
 import WorkflowDetailPage from './pages/WorkflowDetailPage'
+import SettingsPage from './pages/SettingsPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -18,11 +17,12 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
-        <Route path="/workspaces/:id" element={<PrivateRoute><WorkspacePage /></PrivateRoute>} />
-        <Route path="/connections/:connectionId/workflows" element={<PrivateRoute><WorkflowsPage /></PrivateRoute>} />
+
+        <Route path="/workflows" element={<PrivateRoute><WorkflowsListPage /></PrivateRoute>} />
         <Route path="/workflows/:id" element={<PrivateRoute><WorkflowDetailPage /></PrivateRoute>} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
+
+        <Route path="*" element={<Navigate to="/workflows" replace />} />
       </Routes>
     </BrowserRouter>
   )

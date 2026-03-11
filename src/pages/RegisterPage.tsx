@@ -17,7 +17,7 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       await register(name, email, password)
-      navigate('/dashboard')
+      navigate('/workflows')
     } catch {
       setError('Registration failed. Please try again.')
     } finally {
@@ -26,54 +26,54 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="w-full max-w-md p-8 bg-gray-900 rounded-xl border border-gray-800">
-        <h1 className="text-2xl font-bold text-white mb-2">NodePad</h1>
-        <p className="text-gray-400 mb-8">Create your account</p>
+    <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+      <div className="card w-full max-w-sm p-8 shadow-xl">
+        <h1 className="text-xl font-bold text-text mb-1">NodePad</h1>
+        <p className="text-text-muted text-sm mb-8">Create your account</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Name</label>
+            <label className="block text-xs text-text-muted mb-1.5">Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              className="input w-full px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Email</label>
+            <label className="block text-xs text-text-muted mb-1.5">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              className="input w-full px-3 py-2 text-sm"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Password</label>
+            <label className="block text-xs text-text-muted mb-1.5">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+              className="input w-full px-3 py-2 text-sm"
               required
             />
           </div>
-          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {error && <p className="text-red-400 text-xs">{error}</p>}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-medium transition-colors"
+            className="w-full py-2 bg-accent text-white rounded-md hover:bg-accent-hover transition-colors text-sm font-medium disabled:opacity-50"
           >
             {loading ? 'Creating account...' : 'Create account'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-gray-400 text-sm">
+        <p className="mt-6 text-center text-text-muted text-xs">
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-400 hover:underline">Sign in</Link>
+          <Link to="/login" className="text-accent hover:underline">Sign in</Link>
         </p>
       </div>
     </div>

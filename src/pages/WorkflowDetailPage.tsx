@@ -20,42 +20,57 @@ export default function WorkflowDetailPage() {
 
   useEffect(() => {
     if (!id) return
+    setFetching(true)
     workflowsApi.get(id)
-      .then(wf => {
+      .then((wf) => {
         setWorkflow(wf)
         const { nodes: n, edges: e } = n8nToFlow(wf.data)
         setNodes(n)
         setEdges(e)
-        // Fetch credentials for this connection (best-effort)
         return connectionsApi.credentials(wf.connection_id).catch(() => [])
       })
-      .then(creds => setCredentials(creds))
+      .then(setCredentials)
       .catch(() => navigate(-1))
       .finally(() => setFetching(false))
   }, [id])
 
   if (fetching) {
-    return <AppLayout><p className="text-gray-400">Loading workflow...</p></AppLayout>
+    return (
+      <AppLayout>
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-text-muted text-sm">Loading workflow...</p>
+        </div>
+      </AppLayout>
+    )
   }
 
   return (
-    <AppLayout noPadding>
-      {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800 bg-gray-950 shrink-0">
-        <button onClick={() => navigate(-1)} className="text-gray-400 hover:text-white text-sm transition-colors">
-          ← Back
+    <AppLayout>
+      {/* Workflow top bar */}
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border bg-surface shrink-0">
+        <button
+          onClick={() => navigate('/workflows')}
+          className="text-text-muted hover:text-text text-xs transition-colors shrink-0"
+        >
+          ← Workflows
         </button>
-        <div className="w-px h-4 bg-gray-700" />
-        <h1 className="text-sm font-semibold">{workflow?.name}</h1>
-        <span className={`text-xs px-2 py-0.5 rounded-full ${workflow?.active ? 'bg-green-900 text-green-400' : 'bg-gray-800 text-gray-400'}`}>
+        <div className="w-px h-4 bg-border shrink-0" />
+        <h1 className="text-sm font-semibold text-text truncate">{workflow?.name}</h1>
+        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
+          workflow?.active
+            ? 'bg-green-500/15 text-green-400'
+            : 'bg-surface-raised text-text-muted'
+        }`}>
           {workflow?.active ? 'Active' : 'Inactive'}
         </span>
-        <span className="text-gray-600 text-xs ml-auto">n8n ID: {workflow?.n8n_workflow_id}</span>
+        <span className="text-text-muted text-[10px] font-mono ml-auto shrink-0">
+          {workflow?.n8n_workflow_id}
+        </span>
       </div>
 
-      {/* Split layout */}
-      <div className="flex" style={{ height: 'calc(100vh - 105px)' }}>
-        <div className="flex-1 min-w-0">
+      {/* Canvas + Chat — fills remaining height */}
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-1 min-w-0 [color-scheme:dark]">
           <WorkflowCanvas initialNodes={nodes} initialEdges={edges} />
         </div>
         <div className="w-[360px] shrink-0">
