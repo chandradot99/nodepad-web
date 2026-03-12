@@ -35,6 +35,17 @@ export interface Credential {
   type: string
 }
 
+export interface SavedCredential {
+  id: string
+  connection_id: string
+  n8n_id: string
+  name: string
+  type: string
+  icon_url_light: string | null
+  icon_url_dark: string | null
+  inserted_at: string
+}
+
 export interface Draft {
   id: string
   data: Record<string, unknown>

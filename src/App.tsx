@@ -5,6 +5,8 @@ import RegisterPage from './pages/RegisterPage'
 import WorkflowsListPage from './pages/WorkflowsListPage'
 import WorkflowDetailPage from './pages/WorkflowDetailPage'
 import SettingsPage from './pages/SettingsPage'
+import NodesListPage from './pages/NodesListPage'
+import CredentialsPage from './pages/CredentialsPage'
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.token)
@@ -20,6 +22,8 @@ export default function App() {
 
         <Route path="/workflows" element={<PrivateRoute><WorkflowsListPage /></PrivateRoute>} />
         <Route path="/workflows/:id" element={<PrivateRoute><WorkflowDetailPage /></PrivateRoute>} />
+        <Route path="/nodes" element={<PrivateRoute><NodesListPage /></PrivateRoute>} />
+        <Route path="/credentials" element={<PrivateRoute><CredentialsPage /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
 
         <Route path="*" element={<Navigate to="/workflows" replace />} />

@@ -3,36 +3,30 @@ import { useNavigate } from 'react-router-dom'
 import AppLayout from '../components/layout/AppLayout'
 import Button from '../components/ui/Button'
 import { useWorkspaceStore } from '../store/workspace'
-import { connectionsApi } from '../api/connections'
 import { workflowsApi } from '../api/workflows'
-import type { Connection, Workflow } from '../types'
+import type { Workflow } from '../types'
 
 export default function WorkflowsListPage() {
   const navigate = useNavigate()
-  const { currentId } = useWorkspaceStore()
+  const { currentId, currentConnection } = useWorkspaceStore()
 
-  const [connection, setConnection] = useState<Connection | null>(null)
   const [workflows, setWorkflows] = useState<Workflow[]>([])
   const [fetching, setFetching] = useState(false)
   const [error, setError] = useState('')
 
   const load = useCallback(async () => {
-    if (!currentId) return
+    if (!currentConnection) return
     setFetching(true)
     setError('')
     try {
-      const conns = await connectionsApi.list(currentId)
-      const conn = conns[0] ?? null
-      setConnection(conn)
-      if (!conn) { setWorkflows([]); return }
-      const wfs = await workflowsApi.list(conn.id)
+      const wfs = await workflowsApi.list(currentConnection.id)
       setWorkflows(wfs)
     } catch {
       setError('Failed to load workflows. Check your connection in Settings → Workspace.')
     } finally {
       setFetching(false)
     }
-  }, [currentId])
+  }, [currentConnection])
 
   useEffect(() => { load() }, [load])
 
@@ -44,14 +38,14 @@ export default function WorkflowsListPage() {
       <div className="border-b border-border bg-surface px-6 py-4 flex items-center justify-between shrink-0">
         <div>
           <h1 className="text-sm font-semibold text-text">Workflows</h1>
-          {!fetching && connection && workflows.length > 0 && (
+          {!fetching && currentConnection && workflows.length > 0 && (
             <p className="text-xs text-text-muted mt-0.5">
               {workflows.length} total · {active} active
-              <span className="ml-2 opacity-50">· {connection.base_url}</span>
+              <span className="ml-2 opacity-50">· {currentConnection.base_url}</span>
             </p>
           )}
         </div>
-        {connection && (
+        {currentConnection && (
           <Button variant="secondary" onClick={load} className="text-xs h-8 px-3">
             ↻ Sync
           </Button>
@@ -78,7 +72,7 @@ export default function WorkflowsListPage() {
               Go to Workspace Settings →
             </button>
           </div>
-        ) : !connection ? (
+        ) : !currentConnection ? (
           <Empty
             icon="⛓"
             title="No n8n connection yet"

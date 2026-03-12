@@ -146,41 +146,25 @@ function AccountTab() {
 function WorkspaceTab() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { currentId, workspaces, setWorkspaces, setCurrentId } = useWorkspaceStore()
+  const { currentId, workspaces, setWorkspaces, setCurrentId, currentConnection, setCurrentConnection } = useWorkspaceStore()
   const workspace = workspaces.find((w) => w.id === currentId)
-
-  const [connection, setConnection] = useState<Connection | null>(null)
-  const [fetching, setFetching] = useState(true)
 
   const [wsName, setWsName] = useState(workspace?.name ?? '')
   const [savingName, setSavingName] = useState(false)
   const [nameMsg, setNameMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
-  const [connUrl, setConnUrl] = useState('')
+  const [connUrl, setConnUrl] = useState(currentConnection?.base_url ?? '')
   const [connKey, setConnKey] = useState('')
   const [savingConn, setSavingConn] = useState(false)
   const [connMsg, setConnMsg] = useState<{ ok: boolean; text: string } | null>(null)
   const [testing, setTesting] = useState(false)
 
-  const load = useCallback(async () => {
-    if (!currentId) return
-    setFetching(true)
-    try {
-      const conns = await connectionsApi.list(currentId)
-      const conn = conns[0] ?? null
-      setConnection(conn)
-      if (conn) setConnUrl(conn.base_url)
-    } finally {
-      setFetching(false)
-    }
-  }, [currentId])
-
   useEffect(() => {
     setWsName(workspace?.name ?? '')
+    setConnUrl(currentConnection?.base_url ?? '')
     setNameMsg(null)
     setConnMsg(null)
-    load()
-  }, [load])
+  }, [currentId, currentConnection])
 
   const saveName = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -199,11 +183,11 @@ function WorkspaceTab() {
   }
 
   const testConnection = async () => {
-    if (!connection) return
+    if (!currentConnection) return
     setTesting(true)
     setConnMsg(null)
     try {
-      const res = await connectionsApi.test(connection.id)
+      const res = await connectionsApi.test(currentConnection.id)
       setConnMsg({ ok: res.success, text: res.success ? 'Connected successfully.' : (res.error ?? 'Failed.') })
     } catch {
       setConnMsg({ ok: false, text: 'Connection failed.' })
@@ -214,14 +198,14 @@ function WorkspaceTab() {
 
   const saveConnection = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!connection) return
+    if (!currentConnection) return
     setSavingConn(true)
     setConnMsg(null)
     try {
       const payload: { base_url?: string; api_key?: string } = { base_url: connUrl.trim() }
       if (connKey) payload.api_key = connKey
-      const updated = await connectionsApi.update(connection.id, payload)
-      setConnection(updated)
+      const updated = await connectionsApi.update(currentConnection.id, payload)
+      setCurrentConnection(updated)
       setConnKey('')
       setConnMsg({ ok: true, text: 'Connection updated.' })
     } catch {
@@ -258,7 +242,6 @@ function WorkspaceTab() {
     )
   }
 
-  if (fetching) return <p className="text-text-muted text-sm">Loading...</p>
 
   return (
     <div className="space-y-6">
@@ -288,7 +271,7 @@ function WorkspaceTab() {
 
       {/* n8n Connection */}
       <Section title="n8n Connection">
-        {!connection ? (
+        {!currentConnection ? (
           <p className="text-sm text-text-muted">No connection configured yet.</p>
         ) : (
           <form onSubmit={saveConnection} className="space-y-4">
@@ -508,7 +491,8 @@ function ExtensionTab() {
             'Click the NodePad icon in your browser toolbar to open the side panel',
             'Enter your NodePad URL and the token generated above',
             'Navigate to your n8n instance (must be logged in)',
-            'Click "Sync Nodes Now" — repeat after installing new community nodes',
+            'Click "Sync Nodes Now" to sync node schemas — repeat after installing new community nodes',
+            'Click "Sync Credentials" to sync credential names and types. We never store credential values.',
           ].map((step, i) => (
             <li key={i} className="flex gap-3">
               <span className="w-5 h-5 rounded-full bg-accent/10 text-accent text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">

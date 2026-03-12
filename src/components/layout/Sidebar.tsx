@@ -10,7 +10,7 @@ export default function Sidebar() {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   const { theme, toggleTheme } = useTheme()
-  const { workspaces, currentId, setWorkspaces, setCurrentId, addWorkspace } = useWorkspaceStore()
+  const { workspaces, currentId, setWorkspaces, setCurrentId, addWorkspace, loadConnection } = useWorkspaceStore()
 
   const [showDropdown, setShowDropdown] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -28,6 +28,10 @@ export default function Sidebar() {
       }
     })
   }, [])
+
+  useEffect(() => {
+    if (currentId) loadConnection(currentId)
+  }, [currentId])
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -129,6 +133,8 @@ export default function Sidebar() {
         {/* Main nav */}
         <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
           <NavLink to="/workflows" className={navItemClass}>Workflows</NavLink>
+          <NavLink to="/nodes" className={navItemClass}>Nodes</NavLink>
+          <NavLink to="/credentials" className={navItemClass}>Credentials</NavLink>
         </nav>
 
         {/* Settings pinned above user profile */}

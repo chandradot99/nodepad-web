@@ -1,5 +1,5 @@
 import client from './client'
-import type { Connection, Credential } from '../types'
+import type { Connection, Credential, SavedCredential } from '../types'
 
 export const connectionsApi = {
   list: (workspaceId: string) =>
@@ -16,6 +16,9 @@ export const connectionsApi = {
 
   credentials: (id: string) =>
     client.get<Credential[]>(`/connections/${id}/credentials`).then(r => r.data),
+
+  savedCredentials: (id: string) =>
+    client.get<SavedCredential[]>(`/connections/${id}/saved-credentials`).then(r => r.data),
 
   delete: (id: string) => client.delete(`/connections/${id}`),
 }
